@@ -1,1 +1,1 @@
-Definition x := 123.
+Definition x := 12.

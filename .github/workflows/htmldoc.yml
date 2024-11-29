@@ -1,0 +1,41 @@
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+
+
+jobs:
+  generate-html-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Coq
+        uses: coq-community/docker-coq-action@v1
+        with:
+          coq_version: 8.19
+          ocaml_version: 4.14
+
+      - run: |
+          mkdir -p html
+          echo "<p>PR-$pr_number</p>" > html/index.html
+          pwd
+          ls -l
+          make html
+        env:
+          BRANCH: ${{ github.ref_name }}
+          pr_number: ${{ github.event.pull_request.number }}
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v4
+        env:
+          BRANCH: ${{ github.ref_name }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./output
+          destination_dir: doc/pr/${{ github.event.pull_request.number }}
+          keep_files: true
+          user_name: github-actions
+          user_email: github-actions@github.com
